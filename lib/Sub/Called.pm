@@ -3,15 +3,12 @@ package Sub::Called;
 use warnings;
 use strict;
 
-use B;
-use Exporter;
-
-our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(with_ampersand);
+use base 'Exporter';
+our @EXPORT_OK = qw(already_called not_called);
 
 =head1 NAME
 
-Sub::Called - get information about how the subroutine is called
+Sub::Called - Check if a sub has already been called
 
 =head1 VERSION
 
@@ -23,78 +20,79 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
+    use Sub::Called 'already_called', 'not_called';
 
-    use Sub::Called;
+    sub user {
+        unless (already_called) {   # only gets called once
+            My::Fixtures::Users->load;
+        }
+        ...
+    }
 
-    sub test {
-        if( Sub::Called::with_ampersand() ){
-            print "you called this subroutine this way: &test\n",
-                  "note that this disables prototypes!\n";
+    sub schema {
+        if ( not_called ) {
+            # setup schema
+        }
+        else {
+            return $schema;
         }
     }
+
+=head1 EXPORT
+
+=head2 C<already_called>
+
+This function must be called from inside a subroutine.  It will return false
+if the subroutine has not yet been called.  It will only return false once.
+
+This subroutine is only exported on demand.
+
+=head2 C<not_called>
+
+This function must be called from inside a subroutine.  It returns the
+opposite value of C<already_called>.  Aside from this, there is no difference.
+You may find aesthetically more pleasing.
+
+This subroutine is only exported on demand.
 
 =head1 FUNCTIONS
 
-=head2 with_ampersand
+=head2 C<already_called>
 
 =cut
 
-sub with_ampersand {
-    my $sub  = (caller(2))[3] || "main"; 
-    my $line = (caller(1))[2];
-    
-    my $svref = \&{$sub};
-    my $obj   = B::svref_2object( $svref );
-    
-    my $op      = $sub eq 'main' ? B::main_start() : $obj->START;
-    my $is_line = 0;
-    my $retval  = 0;
-    
-    for(; $$op; $op = $op->next ){
-        my $name    = $op->name;
-        if( $name eq 'nextstate' ){
-            $is_line = ( $op->line == $line );
-        }
-        
-        next unless $is_line and $name eq 'entersub';
-        
-        my $priv = $op->private;
-        
-        if( $priv == 43 ){
-            $retval = 1;
-        }
-        last;
-    }
+my %called;
 
-    return $retval;
+sub already_called() {
+    my ( $package, $filename, $line, $subroutine ) = caller(1);
+    my $called = $called{$package}{$subroutine};
+    $called{$package}{$subroutine} = 1;
+    return $called;
 }
 
-=head1 LIMITATIONS
+=head2 C<not_called>
 
-It seems that there are some problems with subroutine references.
+=cut
 
-This may not work:
-
-  sub test2 {
-      if( Sub::Called::with_ampersand() ){
-          die "die hard";
-      }
-  };
-    
-  my $sub2 = main->can( 'test2' );
-  &$sub2();
+sub not_called() {
+    my ( $package, $filename, $line, $subroutine ) = caller(1);
+    my $called = $called{$package}{$subroutine};
+    $called{$package}{$subroutine} = 1;
+    return not $called;
+}
 
 =head1 AUTHOR
 
-Renee Baecker, C<< <module at renee-baecker.de> >>
+Curtis "Ovid" Poe, C<< <ovid at cpan.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to
-C<bug-sub-called at rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Called>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
+Please report any bugs or feature requests to C<bug-sub-called at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Called>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+
+
 
 =head1 SUPPORT
 
@@ -102,9 +100,14 @@ You can find documentation for this module with the perldoc command.
 
     perldoc Sub::Called
 
+
 You can also look for information at:
 
 =over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Called>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
@@ -114,24 +117,23 @@ L<http://annocpan.org/dist/Sub-Called>
 
 L<http://cpanratings.perl.org/d/Sub-Called>
 
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Called>
-
 =item * Search CPAN
 
 L<http://search.cpan.org/dist/Sub-Called>
 
 =back
 
+
 =head1 ACKNOWLEDGEMENTS
+
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Renee Baecker, all rights reserved.
+Copyright 2008 Curtis "Ovid" Poe, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
+
 
 =cut
 

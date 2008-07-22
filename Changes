@@ -1,5 +1,4 @@
-Revision history for Sub::Called
+Revision history for Sub-Called
 
-0.01    2008-07-21
-        First release
-
+0.01    07/22/2008
+        First version.  Checks to see if a sub has already been called.
