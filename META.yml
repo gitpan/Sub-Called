@@ -1,14 +1,21 @@
---- #YAML:1.0
-name:                Sub-Called
-version:             0.01
-abstract:            Check if a sub has already been called
-license:             ~
-author:              
-    - Curtis "Ovid" Poe <ovid@cpan.org>
-generated_by:        ExtUtils::MakeMaker version 6.42
-distribution_type:   module
-requires:     
-    Test::More:                    0
+---
+abstract: 'get information about how the subroutine is called'
+author:
+  - 'Renee Baecker <module@renee-baecker.de>'
+build_requires:
+  B        : 1.17
+  Exporter : 5.58
+generated_by: 'h2xs version 1.23'
+license: perl
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
-    version: 1.3
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
+name: Sub-Called
+provides:
+  Sub::Called:
+    file: /lib/Sub/Called.pm
+    version: 0.01
+resources:
+  license: http://dev.perl.org/licenses
+version: 0.01
+
